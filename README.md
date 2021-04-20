@@ -18,7 +18,7 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
 First of all, download the official weights.
 
 ```bash
-./bin/download_weights.sh
+./weights/download_weights.sh
 ```
 
 ### Infer a single image (YOLOv3)
