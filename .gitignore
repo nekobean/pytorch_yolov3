@@ -129,7 +129,8 @@ dmypy.json
 .pyre/
 
 .vscode/
-output/
+output/*.avi
 custom_dataset/
 test/
-weights/
+*.weights
+darknet53.conv.74

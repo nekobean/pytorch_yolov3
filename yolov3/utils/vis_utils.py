@@ -10,7 +10,7 @@ font_path = str(Path(__file__).parent / "font/ipag.ttc")
 def get_text_color(color):
     value = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
 
-    return "black" if value > 186 else "white"
+    return "black" if value > 128 else "white"
 
 
 def draw_boxes(img, boxes, n_classes):

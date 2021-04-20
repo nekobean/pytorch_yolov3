@@ -17,25 +17,25 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input_path",
+        "--input",
         type=Path,
         default="data",
         help="image path or directory path which contains images to infer",
     )
     parser.add_argument(
-        "--output_dir",
+        "--output",
         type=Path,
         default="output",
         help="directory path to output detection results",
     )
     parser.add_argument(
-        "--weights_path",
+        "--weights",
         type=Path,
         default="weights/yolov3.weights",
         help="path to weights file",
     )
     parser.add_argument(
-        "--config_path",
+        "--config",
         type=Path,
         default="config/yolov3_coco.yaml",
         help="path to config file",
@@ -83,7 +83,7 @@ def main():
     args = parse_args()
 
     # 設定ファイルを読み込む。
-    config = utils.load_config(args.config_path)
+    config = utils.load_config(args.config)
     class_names = utils.load_classes(config["model"]["class_names"])
     img_size = config["test"]["img_size"]
     conf_threshold = config["test"]["conf_threshold"]
@@ -94,7 +94,7 @@ def main():
     device = utils.get_device(gpu_id=args.gpu_id)
 
     # Dataset を作成する。
-    dataset = ImageFolder(args.input_path, img_size)
+    dataset = ImageFolder(args.input, img_size)
 
     # DataLoader を作成する。
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
@@ -105,13 +105,13 @@ def main():
     else:
         model = YOLOv3Tiny(config["model"])
 
-    if args.weights_path.suffix == ".weights":
-        parse_yolo_weights(model, args.weights_path)
-        print(f"Darknet format weights file loaded. {args.weights_path}")
+    if args.weights.suffix == ".weights":
+        parse_yolo_weights(model, args.weights)
+        print(f"Darknet format weights file loaded. {args.weights}")
     else:
-        state = torch.load(args.weights_path)
+        state = torch.load(args.weights)
         model.load_state_dict(state["model_state_dict"])
-        print(f"state_dict format weights file loaded. {args.weights_path}")
+        print(f"state_dict format weights file loaded. {args.weights}")
 
     model = model.to(device).eval()
 
@@ -131,9 +131,9 @@ def main():
             img_paths += paths
 
     # 検出結果を出力する。
-    args.output_dir.mkdir(exist_ok=True)
+    args.output.mkdir(exist_ok=True)
     for img_path, detection in zip(img_paths, detections):
-        output_detection(args.output_dir, img_path, detection, len(class_names))
+        output_detection(args.output, img_path, detection, len(class_names))
 
 
 if __name__ == "__main__":
