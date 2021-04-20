@@ -183,34 +183,34 @@ class YOLOv3(nn.Module):
 
             if isinstance(module, YOLOLayer):
                 if train:
-                    # x, *losses = module(x, labels)
+                    x, *losses = module(x, labels)
                     ################################
-                    import time
+                    # import time
 
-                    start = time.time()
-                    for i in range(30):
-                        (
-                            loss,
-                            loss_x,
-                            loss_y,
-                            loss_w,
-                            loss_h,
-                            loss_obj,
-                            loss_cls,
-                        ) = module(x, labels)
-                    elapsed_time = time.time() - start
-                    import numpy as np
+                    # start = time.time()
+                    # for i in range(30):
+                    #     (
+                    #         loss,
+                    #         loss_x,
+                    #         loss_y,
+                    #         loss_w,
+                    #         loss_h,
+                    #         loss_obj,
+                    #         loss_cls,
+                    #     ) = module(x, labels)
+                    # elapsed_time = time.time() - start
+                    # import numpy as np
 
-                    # np.save("test/loss.npy", loss.detach().cpu().numpy())
-                    assert np.allclose(
-                        np.load("test/loss.npy"),
-                        loss.detach().cpu().numpy(),
-                        rtol=1e-3,
-                        atol=1e-3,
-                    )
-                    print(f"loss ====> {loss}")
-                    print(elapsed_time)
-                    exit(1)
+                    # # np.save("test/loss.npy", loss.detach().cpu().numpy())
+                    # assert np.allclose(
+                    #     np.load("test/loss.npy"),
+                    #     loss.detach().cpu().numpy(),
+                    #     rtol=1e-3,
+                    #     atol=1e-3,
+                    # )
+                    # print(f"loss ====> {loss}")
+                    # print(elapsed_time)
+                    # exit(1)
                     ##################################
                     for name, loss in zip(["xy", "wh", "conf", "cls", "l2"], losses):
                         self.loss_dict[name] += loss
