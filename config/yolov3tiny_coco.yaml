@@ -1,0 +1,29 @@
+model:
+  name: "yolov3tiny"
+  anchors: [[10,14], [23,27], [37,58],
+            [81,82], [135,169], [344,319]]
+  anchor_mask: [[3, 4, 5], [0, 1, 2]]
+  n_classes: 80
+  class_names: "config/coco_classes.txt"
+train:
+  lr: 0.001
+  burn_in: 1000
+  steps: [400000, 450000]
+  momentum: 0.9
+  decay: 0.0005
+  max_iter: 20000
+  batch_size: 8
+  subdivision: 16
+  img_size: 608
+  ignore_threshold: 0.7
+augmentation:
+  random_size: True
+  lr_flip: True
+  distortion: True
+  random_placing: True
+  jitter: 0.3
+test:
+  batch_size: 64
+  conf_threshold: 0.5
+  nms_threshold: 0.45
+  img_size: 416
