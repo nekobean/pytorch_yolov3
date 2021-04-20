@@ -23,7 +23,7 @@ First of all, download the official weights.
 
 ### Infer a single image (YOLOv3)
 
-```
+```bash
 python detect_image.py \
     --input data/dog.png \
     --output output \
@@ -33,9 +33,19 @@ python detect_image.py \
 
 ### Infer images in the dicretory.
 
-```
+```bash
 python detect_image.py \
     --input data \
+    --output output \
+    --weights weights/yolov3.weights \
+    --config config/yolov3_coco.yaml
+```
+
+### Infer video
+
+```bash
+python detect_video.py \
+    --input data/sample.avi \
     --output output \
     --weights weights/yolov3.weights \
     --config config/yolov3_coco.yaml

@@ -9,7 +9,8 @@ class Video(torch.utils.data.Dataset):
     def __init__(self, video_path, img_size):
         super().__init__()
         self.cap = cv2.VideoCapture(str(video_path))
-        assert self.cap.isOpened(), f"Failed to open video file {video_path}."
+        if not self.cap.isOpened():
+            raise Exception(f"Failed to open video file {video_path}.")
         self.img_size = img_size
 
     def __getitem__(self, index):
