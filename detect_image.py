@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
 
-import pandas as pd
 import torch
 from PIL import Image
 from tqdm import tqdm
@@ -17,37 +16,49 @@ def parse_args():
     """Parse command line arguments.
     """
     parser = argparse.ArgumentParser()
-    # fmt: off
-    parser.add_argument("--input_path", type=Path, default="data",
-                        help="image path or directory path which contains images to infer")
-    parser.add_argument("--output_dir", type=Path, default="output",
-                        help="directory path to output detection results")
-    parser.add_argument("--weights_path", type=Path, default="weights/yolov3.weights",
-                        help="path to weights file")
-    parser.add_argument("--config_path", type=Path, default="config/yolov3_coco.yaml",
-                        help="path to config file")
-    parser.add_argument('--gpu_id', type=int, default=0,
-                        help="GPU id to use")
-    # fmt: on
+    parser.add_argument(
+        "--input_path",
+        type=Path,
+        default="data",
+        help="image path or directory path which contains images to infer",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=Path,
+        default="output",
+        help="directory path to output detection results",
+    )
+    parser.add_argument(
+        "--weights_path",
+        type=Path,
+        default="weights/yolov3.weights",
+        help="path to weights file",
+    )
+    parser.add_argument(
+        "--config_path",
+        type=Path,
+        default="config/yolov3_coco.yaml",
+        help="path to config file",
+    )
+    parser.add_argument("--gpu_id", type=int, default=0, help="GPU id to use")
     args = parser.parse_args()
 
     return args
 
 
-def output_to_frame(output, class_names):
+def output_to_dict(output, class_names):
     detection = []
     for x1, y1, x2, y2, obj_conf, class_conf, label in output:
         bbox = {
             "confidence": float(obj_conf * class_conf),
             "class_id": int(label),
             "class_name": class_names[int(label)],
-            "x1": int(x1),
-            "y1": int(y1),
-            "x2": int(x2),
-            "y2": int(y2),
+            "x1": float(x1),
+            "y1": float(y1),
+            "x2": float(x2),
+            "y2": float(y2),
         }
         detection.append(bbox)
-    detection = pd.DataFrame(detection)
 
     return detection
 
@@ -57,7 +68,10 @@ def output_detection(output_dir, img_path, detection, n_classes):
 
     # 検出結果を出力する。
     print(img_path)
-    print(detection)
+    for box in detection:
+        print(
+            f"{box['class_name']} {box['confidence']:.0%} ({box['x1']:.0f}, {box['y1']:.0f}, {box['x2']:.0f}, {box['y2']:.0f})"
+        )
 
     # 検出結果を画像に描画して、保存する。
     img = Image.open(img_path)
@@ -113,7 +127,7 @@ def main():
                 outputs, conf_threshold, nms_threshold, pad_infos
             )
 
-            detections += [output_to_frame(x, class_names) for x in outputs]
+            detections += [output_to_dict(x, class_names) for x in outputs]
             img_paths += paths
 
     # 検出結果を出力する。
