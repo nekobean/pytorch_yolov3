@@ -4,8 +4,8 @@ from pathlib import Path
 import pandas as pd
 import torch
 from PIL import Image
-from torch.utils import data as data
 from tqdm import tqdm
+
 from yolov3.datasets.imagefolder import ImageFolder
 from yolov3.models.yolov3 import YOLOv3, YOLOv3Tiny
 from yolov3.utils import utils as utils
@@ -83,7 +83,7 @@ def main():
     dataset = ImageFolder(args.input_path, img_size)
 
     # DataLoader を作成する。
-    dataloader = data.DataLoader(dataset, batch_size=batch_size)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
 
     # モデルを作成する。
     if config["model"]["name"] == "yolov3":
@@ -101,10 +101,7 @@ def main():
 
     model = model.to(device).eval()
 
-    # 検出を行う。
-    import time
-
-    start = time.time()
+    # 推論する。
     img_paths, detections = [], []
     for inputs, pad_infos, paths in tqdm(dataloader, desc="infer"):
         inputs = inputs.to(device)
@@ -118,20 +115,6 @@ def main():
 
             detections += [output_to_frame(x, class_names) for x in outputs]
             img_paths += paths
-
-            import numpy as np
-
-            for path, output in zip(paths, outputs):
-                out_path = Path("test") / Path(path).with_suffix(".npy").name
-                assert np.allclose(
-                    np.array(output[:, :4].cpu()),
-                    np.load(out_path),
-                    rtol=1e-3,
-                    atol=1e-3,
-                )
-
-    avg_time = (time.time() - start) / len(img_paths)
-    print(f"Average inference time: {avg_time:.3f} s/image")
 
     # 検出結果を出力する。
     args.output_dir.mkdir(exist_ok=True)
