@@ -15,7 +15,13 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
 
 ### Download weights
 
-First of all, download the official weights.
+Install the dependent libraries.
+
+```bash
+pip install -r requirements.txt
+```
+
+Download the official weights.
 
 ```bash
 ./weights/download_weights.sh
