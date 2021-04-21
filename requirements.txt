@@ -7,3 +7,4 @@ pycocotools
 pyyaml
 torch
 torchvision
+tqdm
