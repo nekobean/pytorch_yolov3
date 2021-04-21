@@ -3,7 +3,6 @@ matplotlib
 numpy
 opencv-contrib-python
 pillow
-pycocotools
 pyyaml
 torch
 torchvision
