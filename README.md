@@ -10,6 +10,7 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
 
 - [x]: Support darknet format weights
 - [x]: Sample code for infering image and video
+- [ ]: Sample code for training and validating (WIP)
 
 ## Usage
 
