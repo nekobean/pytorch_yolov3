@@ -1,7 +1,8 @@
-import torch
-import torch.nn as nn
-
 from collections import defaultdict
+
+import torch
+from torch import nn as nn
+
 from yolov3.models.yolo_layer import YOLOLayer
 
 
@@ -230,7 +231,7 @@ class YOLOv3(nn.Module):
 
 
 def create_yolov3_tiny_modules(config_model, ignore_threshold):
-    # layer order is same as yolov3.cfg
+    # layer order is same as yolov3-tiny.cfg
     # https://github.com/pjreddie/darknet/blob/master/cfg/yolov3-tiny.cfg
     module_list = nn.ModuleList()
 

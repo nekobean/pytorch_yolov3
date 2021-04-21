@@ -2,9 +2,9 @@ import albumentations as A
 import cv2
 import numpy as np
 import torch
-import torchvision.transforms as transforms
+from torchvision import transforms as transforms
 
-import yolov3.utils.utils as utils
+from yolov3.utils import utils as utils
 
 
 class DetectionDataset(torch.utils.data.Dataset):
@@ -112,7 +112,9 @@ class DetectionDataset(torch.utils.data.Dataset):
                 )
             self.augmentor = A.Compose(
                 transforms,
-                bbox_params=A.BboxParams(format=bbox_format, label_fields=["class_ids"]),
+                bbox_params=A.BboxParams(
+                    format=bbox_format, label_fields=["class_ids"]
+                ),
             )
             self.jitter = augmentation["jitter"]
             self.random_placing = augmentation["random_placing"]

@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 import torch
-import torchvision.ops as ops
 import yaml
+from torchvision import ops as ops
 
 
 def load_config(path):

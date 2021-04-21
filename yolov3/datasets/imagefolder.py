@@ -1,8 +1,8 @@
 import cv2
 import torch
-import torchvision.transforms as transforms
+from torchvision import transforms as transforms
 
-import yolov3.utils.utils as utils
+from yolov3.utils import utils as utils
 
 
 class ImageFolder(torch.utils.data.Dataset):

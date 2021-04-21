@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
-from PIL import ImageDraw, ImageFont, ImageColor
+from PIL import ImageDraw, ImageFont
 
 font_path = str(Path(__file__).parent / "font/ipag.ttc")
 

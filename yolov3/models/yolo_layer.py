@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn as nn
 
 from yolov3.utils.utils import bboxes_iou, bboxes_wh_iou
 

@@ -1,11 +1,11 @@
+import albumentations as A
 import cv2
 import numpy as np
 import torch
 from pycocotools.coco import COCO
-import torchvision.transforms as transforms
+from torchvision import transforms as transforms
 
-import yolov3.utils.utils as utils
-import albumentations as A
+from yolov3.utils import utils as utils
 
 
 class COCODataset(torch.utils.data.Dataset):
