@@ -26,10 +26,15 @@ def output_to_dict(output, class_names):
 
 
 class Detector:
-    def __init__(self, config_path, weights_path, gpu_id):
+    def __init__(self, config_path, weights_path, gpu_id=0):
+        config_path = Path(config_path)
+        weights_path = Path(weights_path)
+
         # 設定ファイルを読み込む。
         self.config = utils.load_config(config_path)
-        self.class_names = utils.load_classes(self.config["model"]["class_names"])
+        self.class_names = utils.load_classes(
+            config_path.parent / self.config["model"]["class_names"]
+        )
 
         # デバイスを作成する。
         self.device = utils.get_device(gpu_id=gpu_id)

@@ -5,7 +5,7 @@ model:
             [116, 90], [156, 198], [373, 326]]
   anchor_mask: [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
   n_classes: 80
-  class_names: "config/coco_classes_en.txt"
+  class_names: "coco_classes_en.txt"
 train:
   lr: 0.001
   burn_in: 1000

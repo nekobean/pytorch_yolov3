@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 from PIL import Image
-from detector import Detector
+from yolov3.detector import Detector
 
 
 def parse_args():
@@ -53,7 +53,8 @@ def main():
         print(img_path)
         for box in detection:
             print(
-                f"{box['class_name']} {box['confidence']:.0%} ({box['x1']:.0f}, {box['y1']:.0f}, {box['x2']:.0f}, {box['y2']:.0f})"
+                f"{box['class_name']} {box['confidence']:.0%} "
+                f"({box['x1']:.0f}, {box['y1']:.0f}, {box['x2']:.0f}, {box['y2']:.0f})"
             )
 
         # 検出結果を画像に描画して、保存する。
