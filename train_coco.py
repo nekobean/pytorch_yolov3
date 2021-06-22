@@ -7,32 +7,53 @@ import pandas as pd
 import torch
 from torch import optim as optim
 from tqdm import trange
+
 from yolov3.datasets.coco import COCODataset
-from yolov3.models.yolov3 import YOLOv3
+from yolov3.models.yolov3 import YOLOv3, YOLOv3Tiny
 from yolov3.utils import utils as utils
 from yolov3.utils.parse_yolo_weights import parse_yolo_weights
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    # fmt: off
-    parser.add_argument("--dataset_dir", type=Path, default="/data/COCO",
-                        help="directory path to coco dataset")
-    parser.add_argument("--anno_path", type=Path, default="/data/COCO/annotations/instances_val5k.json",
-                        help="json filename")
-    parser.add_argument("--weights_path", type=Path, default="weights/yolov3.weights",
-                        help="path to weights file")
-    parser.add_argument("--checkpoint_path", type=Path,
-                        help="pytorch checkpoint file path")
-    parser.add_argument("--config_path", type=Path, default="config/yolov3_coco.yaml",
-                        help="path to config file")
-    parser.add_argument('--gpu_id', type=int, default=0,
-                        help="GPU id to use")
-    parser.add_argument("--save_dir", type=Path, default="train_output",
-                        help="directory where checkpoint files are saved")
-    parser.add_argument("--save_interval", type=int, default=1000,
-                        help="interval between saving checkpoints")
-    # fmt: on
+    parser.add_argument(
+        "--dataset_dir",
+        type=Path,
+        default="/data/COCO",
+        help="directory path to coco dataset",
+    )
+    parser.add_argument(
+        "--anno_path",
+        type=Path,
+        default="/data/COCO/annotations/instances_val5k.json",
+        help="json filename",
+    )
+    parser.add_argument(
+        "--weights",
+        type=Path,
+        default="weights/yolov3.weights",
+        help="path to weights file",
+    )
+    parser.add_argument("--checkpoint", type=Path, help="pytorch checkpoint file path")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default="config/yolov3_coco.yaml",
+        help="path to config file",
+    )
+    parser.add_argument("--gpu_id", type=int, default=0, help="GPU id to use")
+    parser.add_argument(
+        "--save_dir",
+        type=Path,
+        default="train_output",
+        help="directory where checkpoint files are saved",
+    )
+    parser.add_argument(
+        "--save_interval",
+        type=int,
+        default=1000,
+        help="interval between saving checkpoints",
+    )
     args = parser.parse_args()
 
     return args
@@ -93,7 +114,7 @@ def main():
     args = parse_args()
 
     # 設定ファイルを読み込む。
-    config = utils.load_config(args.config_path)
+    config = utils.load_config(args.config)
     batch_size = config["train"]["batch_size"]
     subdivision = config["train"]["subdivision"]
     n_samples_per_iter = batch_size * subdivision
@@ -105,13 +126,19 @@ def main():
     device = utils.get_device(gpu_id=args.gpu_id)
 
     # モデルを作成する。
-    model = YOLOv3(config["model"], config["train"]["ignore_threshold"])
-    if args.weights_path:
-        parse_yolo_weights(model, args.weights_path)
-    elif args.checkpoint_path:
-        state = torch.load(args.checkpoint_path)
-        # モデルの重みを読み込み。
+    if config["model"]["name"] == "yolov3":
+        model = YOLOv3(config["model"])
+    else:
+        model = YOLOv3Tiny(config["model"])
+
+    if args.weights.suffix == ".weights":
+        parse_yolo_weights(model, args.weights)
+        print(f"Darknet format weights file loaded. {args.weights}")
+    else:
+        state = torch.load(args.weights)
         model.load_state_dict(state["model_state_dict"])
+        print(f"state_dict format weights file loaded. {args.weights}")
+
     model = model.to(device).train()
 
     # オプティマイザを作成する。
@@ -121,8 +148,8 @@ def main():
     # スケジューラーを作成する。
     scheduler = build_scheduler(config, optimizer)
 
-    if args.checkpoint_path:
-        state = torch.load(args.checkpoint_path)
+    if args.checkpoint:
+        state = torch.load(args.checkpoint)
         # オプティマイザの状態を読み込み
         optimizer.load_state_dict(state["optimizer_state_dict"])
         iter_state = state["iter"] + 1
