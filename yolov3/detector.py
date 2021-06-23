@@ -2,10 +2,9 @@ from pathlib import Path
 
 import torch
 from yolov3.datasets.imagefolder import ImageFolder, ImageList
-from yolov3.models.yolov3 import YOLOv3, YOLOv3Tiny
 from yolov3.utils import utils as utils
 from yolov3.utils import vis_utils as vis_utils
-from yolov3.utils.parse_yolo_weights import parse_yolo_weights
+from yolov3.utils.model import create_model
 
 
 def output_to_dict(output, class_names):
@@ -40,20 +39,7 @@ class Detector:
         self.device = utils.get_device(gpu_id=gpu_id)
 
         # モデルを作成する。
-        if self.config["model"]["name"] == "yolov3":
-            model = YOLOv3(self.config["model"])
-        else:
-            model = YOLOv3Tiny(self.config["model"])
-
-        # 重みを読み込む。
-        if weights_path.suffix == ".weights":
-            parse_yolo_weights(model, weights_path)
-            print(f"Darknet format weights file loaded. {weights_path}")
-        else:
-            state = torch.load(weights_path)
-            model.load_state_dict(state["model_state_dict"])
-            print(f"state_dict format weights file loaded. {weights_path}")
-
+        model = create_model(self.config, weights_path)
         self.model = model.to(self.device).eval()
 
     def detect_from_path(self, path):

@@ -213,7 +213,7 @@ class YOLOv3(nn.Module):
                     # print(elapsed_time)
                     # exit(1)
                     ##################################
-                    for name, loss in zip(["xy", "wh", "conf", "cls", "l2"], losses):
+                    for name, loss in zip(["x", "y", "w", "h", "obj", "cls"], losses):
                         self.loss_dict[name] += loss
                 else:
                     x = module(x)
@@ -313,7 +313,7 @@ class YOLOv3Tiny(nn.Module):
             if isinstance(module, YOLOLayer):
                 if train:
                     x, *losses = module(x, labels)
-                    for name, loss in zip(["xy", "wh", "conf", "cls", "l2"], losses):
+                    for name, loss in zip(["x", "y", "w", "h", "obj", "cls"], losses):
                         self.loss_dict[name] += loss
                 else:
                     x = module(x)

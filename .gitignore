@@ -134,3 +134,4 @@ custom_dataset/
 test/
 *.weights
 darknet53.conv.74
+train_output/

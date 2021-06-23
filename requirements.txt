@@ -4,6 +4,7 @@ numpy
 opencv-contrib-python
 pillow
 pyyaml
+scikit-learn
 torch
 torchvision
 tqdm

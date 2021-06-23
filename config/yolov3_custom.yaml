@@ -1,20 +1,20 @@
 model:
+  name: "yolov3"
   anchors: [[10, 13], [16, 30], [33, 23],
             [30, 61], [62, 45], [59, 119],
             [116, 90], [156, 198], [373, 326]]
   anchor_mask: [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
-  n_classes: 80
-  class_names: "config/custom_classes.txt"
+  n_classes: 1
+  class_names: "custom_classes.txt"
 train:
   lr: 0.001
   burn_in: 1000
-  steps: [400000, 450000]
+  steps: [8000, 9000]
   momentum: 0.9
   decay: 0.0005
-  max_iter: 20000
+  max_iter: 10000
   batch_size: 4
   subdivision: 16
-  img_size: 608
   ignore_threshold: 0.7
 augmentation:
   random_size: True

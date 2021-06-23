@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument(
         "--weights",
         type=Path,
-        default="weights/yolov3.weights",
+        default="weights/darknet53.conv.74",
         help="path to weights file",
     )
     parser.add_argument("--checkpoint", type=Path, help="pytorch checkpoint file path")

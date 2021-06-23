@@ -15,7 +15,6 @@ train:
   max_iter: 500200
   batch_size: 8
   subdivision: 16
-  img_size: 608
   ignore_threshold: 0.7
 augmentation:
   random_size: True
