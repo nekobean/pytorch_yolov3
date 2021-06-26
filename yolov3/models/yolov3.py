@@ -70,7 +70,7 @@ class resblock(nn.Module):
         return x
 
 
-def create_yolov3_modules(config_model, ignore_threshold):
+def create_yolov3_modules(config_model):
     # layer order is same as yolov3.cfg
     # https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg
     module_list = nn.ModuleList()
@@ -108,11 +108,7 @@ def create_yolov3_modules(config_model, ignore_threshold):
     module_list.append(add_conv(in_ch=1024, out_ch=512, ksize=1, stride=1))  # 79 / 15
     # B
     module_list.append(add_conv(in_ch=512, out_ch=1024, ksize=3, stride=1))  # 80 / 16
-    module_list.append(
-        YOLOLayer(
-            config_model, layer_no=0, in_ch=1024, ignore_threshold=ignore_threshold
-        )
-    )  # 81, 82 / 17
+    module_list.append(YOLOLayer(config_model, layer_no=0, in_ch=1024))  # 81, 82 / 17
 
     # path 83 / 15 -> 18
 
@@ -130,11 +126,7 @@ def create_yolov3_modules(config_model, ignore_threshold):
     module_list.append(add_conv(in_ch=512, out_ch=256, ksize=1, stride=1))  # 91 / 24
     # B
     module_list.append(add_conv(in_ch=256, out_ch=512, ksize=3, stride=1))  # 92 / 25
-    module_list.append(
-        YOLOLayer(
-            config_model, layer_no=1, in_ch=512, ignore_threshold=ignore_threshold
-        )
-    )  # 93, 94 / 26
+    module_list.append(YOLOLayer(config_model, layer_no=1, in_ch=512))  # 93, 94 / 26
 
     # path 95 / 24 -> 27
 
@@ -151,19 +143,15 @@ def create_yolov3_modules(config_model, ignore_threshold):
     module_list.append(add_conv(in_ch=128, out_ch=256, ksize=3, stride=1))  # 101 / 32
     module_list.append(add_conv(in_ch=256, out_ch=128, ksize=1, stride=1))  # 102 / 33
     module_list.append(add_conv(in_ch=128, out_ch=256, ksize=3, stride=1))  # 103 / 34
-    module_list.append(
-        YOLOLayer(
-            config_model, layer_no=2, in_ch=256, ignore_threshold=ignore_threshold
-        )
-    )  # 105, 106 / 35
+    module_list.append(YOLOLayer(config_model, layer_no=2, in_ch=256))  # 105, 106 / 35
 
     return module_list
 
 
 class YOLOv3(nn.Module):
-    def __init__(self, config_model, ignore_threshold=0.7):
+    def __init__(self, config_model):
         super().__init__()
-        self.module_list = create_yolov3_modules(config_model, ignore_threshold)
+        self.module_list = create_yolov3_modules(config_model)
 
     def forward(self, x, labels=None):
         train = labels is not None
@@ -185,35 +173,7 @@ class YOLOv3(nn.Module):
             if isinstance(module, YOLOLayer):
                 if train:
                     x, *losses = module(x, labels)
-                    ################################
-                    # import time
-
-                    # start = time.time()
-                    # for i in range(30):
-                    #     (
-                    #         loss,
-                    #         loss_x,
-                    #         loss_y,
-                    #         loss_w,
-                    #         loss_h,
-                    #         loss_obj,
-                    #         loss_cls,
-                    #     ) = module(x, labels)
-                    # elapsed_time = time.time() - start
-                    # import numpy as np
-
-                    # # np.save("test/loss.npy", loss.detach().cpu().numpy())
-                    # assert np.allclose(
-                    #     np.load("test/loss.npy"),
-                    #     loss.detach().cpu().numpy(),
-                    #     rtol=1e-3,
-                    #     atol=1e-3,
-                    # )
-                    # print(f"loss ====> {loss}")
-                    # print(elapsed_time)
-                    # exit(1)
-                    ##################################
-                    for name, loss in zip(["x", "y", "w", "h", "obj", "cls"], losses):
+                    for name, loss in zip(["xy", "wh", "obj", "cls"], losses):
                         self.loss_dict[name] += loss
                 else:
                     x = module(x)
@@ -230,7 +190,7 @@ class YOLOv3(nn.Module):
             return torch.cat(output, dim=1)
 
 
-def create_yolov3_tiny_modules(config_model, ignore_threshold):
+def create_yolov3_tiny_modules(config_model):
     # layer order is same as yolov3-tiny.cfg
     # https://github.com/pjreddie/darknet/blob/master/cfg/yolov3-tiny.cfg
     module_list = nn.ModuleList()
@@ -268,11 +228,7 @@ def create_yolov3_tiny_modules(config_model, ignore_threshold):
     module_list.append(add_conv(in_ch=1024, out_ch=256, ksize=1, stride=1))  # 13 / 14
     # B
     module_list.append(add_conv(in_ch=256, out_ch=512, ksize=3, stride=1))  # 14 / 15
-    module_list.append(
-        YOLOLayer(
-            config_model, layer_no=0, in_ch=512, ignore_threshold=ignore_threshold
-        )
-    )  # 15, 16 / 16
+    module_list.append(YOLOLayer(config_model, layer_no=0, in_ch=512))  # 15, 16 / 16
 
     # path 17 / 14 -> 17
 
@@ -284,19 +240,15 @@ def create_yolov3_tiny_modules(config_model, ignore_threshold):
 
     # B
     module_list.append(add_conv(in_ch=384, out_ch=256, ksize=3, stride=1))  # 21 / 19
-    module_list.append(
-        YOLOLayer(
-            config_model, layer_no=1, in_ch=256, ignore_threshold=ignore_threshold
-        )
-    )  # 22, 23 / 20
+    module_list.append(YOLOLayer(config_model, layer_no=1, in_ch=256))  # 22, 23 / 20
 
     return module_list
 
 
 class YOLOv3Tiny(nn.Module):
-    def __init__(self, config_model, ignore_threshold=0.7):
+    def __init__(self, config_model):
         super().__init__()
-        self.module_list = create_yolov3_tiny_modules(config_model, ignore_threshold)
+        self.module_list = create_yolov3_tiny_modules(config_model)
 
     def forward(self, x, labels=None):
         train = labels is not None
@@ -313,7 +265,7 @@ class YOLOv3Tiny(nn.Module):
             if isinstance(module, YOLOLayer):
                 if train:
                     x, *losses = module(x, labels)
-                    for name, loss in zip(["x", "y", "w", "h", "obj", "cls"], losses):
+                    for name, loss in zip(["xy", "wh", "obj", "cls"], losses):
                         self.loss_dict[name] += loss
                 else:
                     x = module(x)

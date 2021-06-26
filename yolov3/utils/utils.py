@@ -162,38 +162,3 @@ def postprocess(outputs, conf_threshold, iou_threshold, pad_infos):
         decoded.append(output)
 
     return decoded
-
-
-def bboxes_iou(bboxes_a, bboxes_b):
-    """(N, 4), (M, 4) -> (N, M)
-    """
-    if bboxes_a.shape[1] != 4 or bboxes_b.shape[1] != 4:
-        raise IndexError
-
-    tl = torch.max(
-        (bboxes_a[:, None, :2] - bboxes_a[:, None, 2:] / 2),
-        (bboxes_b[:, :2] - bboxes_b[:, 2:] / 2),
-    )
-    # bottom right
-    br = torch.min(
-        (bboxes_a[:, None, :2] + bboxes_a[:, None, 2:] / 2),
-        (bboxes_b[:, :2] + bboxes_b[:, 2:] / 2),
-    )
-
-    area_a = torch.prod(bboxes_a[:, 2:], 1)
-    area_b = torch.prod(bboxes_b[:, 2:], 1)
-    en = (tl < br).type(tl.type()).prod(dim=2)
-    area_i = torch.prod(br - tl, 2) * en  # * ((tl < br).all())
-    return area_i / (area_a[:, None] + area_b - area_i)
-
-
-def bboxes_wh_iou(bboxes_a, bboxes_b):
-    tl = torch.max((-bboxes_a[:, None, 2:] / 2), (-bboxes_b[:, 2:] / 2),)
-    # bottom right
-    br = torch.min((bboxes_a[:, None, 2:] / 2), (bboxes_b[:, 2:] / 2),)
-
-    area_a = torch.prod(bboxes_a[:, 2:], 1)
-    area_b = torch.prod(bboxes_b[:, 2:], 1)
-    en = (tl < br).type(tl.type()).prod(dim=2)
-    area_i = torch.prod(br - tl, 2) * en  # * ((tl < br).all())
-    return area_i / (area_a[:, None] + area_b - area_i)

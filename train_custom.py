@@ -193,8 +193,8 @@ def main():
             "lr": scheduler.get_last_lr()[0] * n_samples_per_iter,
             "img_size": train_dataset.img_size,
             "loss_total": float(loss),
-            "loss_xy": float(model.loss_dict["x"] + model.loss_dict["y"]),
-            "loss_wh": float(model.loss_dict["w"] + model.loss_dict["h"]),
+            "loss_xy": float(model.loss_dict["xy"]),
+            "loss_wh": float(model.loss_dict["wh"]),
             "loss_obj": float(model.loss_dict["obj"]),
             "loss_cls": float(model.loss_dict["cls"]),
         }
@@ -214,8 +214,8 @@ def main():
         # チェックポイントを保存する。
         if iter_i % args.save_interval == 0 or iter_i == max_iter:
             # モデルを保存する。
-            filename = (
-                f"yolov3_{iter_i}.pth" if iter_i < max_iter else "yolov3_final.pth"
+            filename = config["model"]["name"] + (
+                f"_{iter_i:06d}.pth" if iter_i < max_iter else "_final.pth"
             )
             save_path = args.save_dir / filename
             state_dict = {
@@ -226,9 +226,9 @@ def main():
             torch.save(state_dict, save_path)
             print(f"Training state saved at {save_path}.")
 
-            # 学習経過を保存する。
-            save_path = args.save_dir / "history.csv"
-            pd.DataFrame(history).to_csv(save_path, index=False)
+        # 学習経過を保存する。
+        save_path = args.save_dir / "history.csv"
+        pd.DataFrame(history).to_csv(save_path, index=False)
 
 
 if __name__ == "__main__":

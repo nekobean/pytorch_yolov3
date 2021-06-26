@@ -1,10 +1,11 @@
 model:
   name: "yolov3tiny"
+  n_classes: 80
+  class_names: "coco_classes_en.txt"
+  ignore_threshold: 0.7
   anchors: [[10,14], [23,27], [37,58],
             [81,82], [135,169], [344,319]]
   anchor_mask: [[3, 4, 5], [0, 1, 2]]
-  n_classes: 80
-  class_names: "coco_classes_en.txt"
 train:
   lr: 0.001
   burn_in: 1000
@@ -15,7 +16,6 @@ train:
   batch_size: 8
   subdivision: 16
   img_size: 608
-  ignore_threshold: 0.7
 augmentation:
   random_size: True
   lr_flip: True
