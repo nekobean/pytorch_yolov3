@@ -392,13 +392,8 @@ class YOLOLayer(nn.Module):
         return loss, loss_xy, loss_wh, loss_obj, loss_cls, target
 
     def forward(self, xin, labels=None):
-        #########################
         output = self.conv(xin)
-        loss, loss_xy, loss_wh, loss_obj, loss_cls, target = self.calc2(
-            xin, output, labels
-        )
-        return loss, loss_xy, loss_wh, loss_obj, loss_cls
-
+        return self.calc2(xin, output, labels)
         #########################
         output = self.conv(xin)
         if labels is None:
