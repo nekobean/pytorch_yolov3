@@ -135,3 +135,6 @@ test/
 *.weights
 darknet53.conv.74
 train_output/
+output2/
+script_usage.ipynb
+data/goldfish/
