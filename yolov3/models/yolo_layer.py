@@ -87,13 +87,6 @@ class YOLOLayer(nn.Module):
             padding=0,
         )
 
-        ################################################################################
-        # ref anchors は消す
-        self.ref_anchors = np.zeros((len(self.all_anchors), 4))
-        self.ref_anchors[:, 2:] = np.array(self.all_anchors)
-        self.l2_loss = nn.MSELoss(reduction="sum")
-        self.bce_loss = nn.BCELoss(reduction="sum")
-
     def get_anchor_indices(self, gt_bboxes: torch.Tensor, anchors: torch.Tensor):
         """ground truth に対応する anchor box のインデックスを取得する。
 
