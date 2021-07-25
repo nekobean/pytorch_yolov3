@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from torch import nn as nn
 import torch.nn.functional as F
+from torch import nn as nn
 
 
 def bboxes_iou_wh(size_a: torch.Tensor, size_b: torch.Tensor):
@@ -91,13 +91,13 @@ class YOLOLayer(nn.Module):
         """ground truth に対応する anchor box のインデックスを取得する。
 
         Args:
-            gt_bboxes (torch.Tensor): ground truth の矩形一覧
-            anchors (torch.Tensor): anchor box の一覧
+            gt_bboxes (torch.Tensor): (N, 2) Tensor。ground truth の大きさ一覧。
+            anchors (torch.Tensor): (N, 2) Tensor。anchor box の一覧。
 
         Returns:
-            [type]: 最も IOU が高い anchor box の一覧
+            torch.Tensor: 最も IOU が高い anchor box のインデックス。
         """
-        # grount truth の矩形の大きさと anchor box の大きさとの IOU を計算する。
+        # ground truth の矩形の大きさと anchor box の大きさとの IOU を計算する。
         anchor_ious = bboxes_iou_wh(gt_bboxes, anchors)
 
         # 最も IOU が高い anchor box のインデックスを取得する。
@@ -113,56 +113,52 @@ class YOLOLayer(nn.Module):
 
         return best_anchor_indices
 
-    def calc(self, xin, predictions, labels):
-        nB = predictions.size(0)  # バッチサイズ
+    def calc(self, x, labels):
+        nB = x.size(0)  # バッチサイズ
         nA = self.n_anchors  # anchor box の数
-        nG = predictions.size(2)  # 特徴マップのサイズ
+        nG = x.size(2)  # 特徴マップの縦横のグリッド数
         nC = self.n_classes + 5  # チャンネル数
 
-        # reshape: (N, A * C, H, W) -> (N, A, C, H, W) -> (N, A, H, W, C)
-        predictions = predictions.reshape(nB, nA, nC, nG, nG).permute(0, 1, 3, 4, 2)
+        anchors = torch.tensor(self.anchors, dtype=x.dtype, device=x.device)
+        all_anchors = torch.tensor(self.all_anchors, dtype=x.dtype, device=x.device)
 
-        anchors = torch.tensor(self.anchors, dtype=xin.dtype, device=xin.device)
-        all_anchors = torch.tensor(self.all_anchors, dtype=xin.dtype, device=xin.device)
+        # (N, A * C, H, W) -> (N, A, C, H, W) -> (N, A, H, W, C)
+        x = x.reshape(nB, nA, nC, nG, nG).permute(0, 1, 3, 4, 2)
 
-        # 予測値
-        x = torch.sigmoid(predictions[..., 0])
-        y = torch.sigmoid(predictions[..., 1])
-        w = predictions[..., 2]
-        h = predictions[..., 3]
-        pred_obj = torch.sigmoid(predictions[..., 4])
-        pred_cls = torch.sigmoid(predictions[..., 5:])
+        # シグモイド関数を適用する。
+        x[..., np.r_[:2, 4:nC]] = torch.sigmoid(x[..., np.r_[:2, 4:nC]])
 
-        y_shift, x_shift = torch.meshgrid(
-            torch.arange(nG, dtype=xin.dtype, device=xin.device),
-            torch.arange(nG, dtype=xin.dtype, device=xin.device),
+        # 矩形の中心及び大きさを計算する。
+        y_offset, x_offset = torch.meshgrid(
+            torch.arange(nG, dtype=x.dtype, device=x.device),
+            torch.arange(nG, dtype=x.dtype, device=x.device),
         )
+
         pred_boxes = torch.stack(
             [
-                x + x_shift,
-                y + y_shift,
-                torch.exp(w) * anchors[:, 0].reshape(1, nA, 1, 1),
-                torch.exp(h) * anchors[:, 1].reshape(1, nA, 1, 1),
+                x[..., 0] + x_offset,
+                x[..., 1] + y_offset,
+                torch.exp(x[..., 2]) * anchors[:, 0].reshape(1, nA, 1, 1),
+                torch.exp(x[..., 3]) * anchors[:, 1].reshape(1, nA, 1, 1),
             ],
             dim=-1,
         )
 
-        output = torch.cat(
-            (pred_boxes * self.stride, pred_obj.unsqueeze(-1), pred_cls), -1,
-        ).reshape(nB, -1, nC)
-
         if labels is None:
+            # 推論時の場合、矩形の情報は画像座標系にして返す。
+            output = torch.cat((pred_boxes * self.stride, x[..., 4:]), dim=-1).reshape(
+                nB, -1, nC
+            )
             return output
 
-        # logistic activation for xy, obj, cls
-        predictions[..., np.r_[:2, 4:nC]] = torch.sigmoid(
-            predictions[..., np.r_[:2, 4:nC]]
-        )
-
-        target = torch.zeros(nB, nA, nG, nG, nC, dtype=xin.dtype, device=xin.device)
-        scale = torch.zeros(nB, nA, nG, nG, 1, dtype=xin.dtype, device=xin.device)
-        obj_mask = torch.ones(nB, nA, nG, nG, dtype=xin.dtype, device=xin.device)
-        noobj_mask = torch.zeros(nB, nA, nG, nG, 1, dtype=xin.dtype, device=xin.device)
+        # 正解データ
+        target = torch.zeros(nB, nA, nG, nG, nC, dtype=x.dtype, device=x.device)
+        # tx, ty, tw, th の損失計算時の重み
+        scale = torch.zeros(nB, nA, nG, nG, 1, dtype=x.dtype, device=x.device)
+        # objectness score の損失計算対象を表すマスク。
+        obj_mask = torch.ones(nB, nA, nG, nG, dtype=torch.bool, device=x.device)
+        # objectness score 以外の損失計算対象を表すマスク。
+        noobj_mask = torch.zeros(nB, nA, nG, nG, 1, dtype=torch.bool, device=x.device)
 
         gt_cls = labels[:, :, 0].long()
         gt_boxes = labels[:, :, 1:] * nG
@@ -174,9 +170,9 @@ class YOLOLayer(nn.Module):
         gj = gt_boxes[:, :, 1].long()
 
         for b in range(nB):
-            n_bboxes = (labels[b].sum(1) > 0).sum()
+            n_bboxes = (labels[b].sum(dim=1) > 0).sum()  # この画像のラベル数
             if n_bboxes == 0:
-                continue
+                continue  # 1つもラベルがない場合
 
             # ground truth に対応する anchor box のインデックスを取得する。
             anchor_indices = self.get_anchor_indices(
@@ -203,37 +199,37 @@ class YOLOLayer(nn.Module):
                 target[b, a, j, i, 4] = 1
                 target[b, a, j, i, 5 + gt_cls[b, n]] = 1
 
-                scale[b, a, j, i] = 2 - gt_w[b, n] * gt_h[b, n] / (nG * nG)
-                obj_mask[b, a, j, i] = 1
-                noobj_mask[b, a, j, i] = 1
+                scale[b, a, j, i] = 2 - gt_w[b, n] * gt_h[b, n] / nG ** 2
+                obj_mask[b, a, j, i] = True
+                noobj_mask[b, a, j, i] = True
 
         # 損失計算の対象外をマスクする。
-        predictions[..., 4] *= obj_mask
+        x[..., 4] *= obj_mask
         target[..., 4] *= obj_mask
-        predictions[..., np.r_[:4, 5:nC]] *= noobj_mask
+        x[..., np.r_[:4, 5:nC]] *= noobj_mask
         target[..., np.r_[:4, 5:nC]] *= noobj_mask
 
         loss_xy = F.binary_cross_entropy(
-            predictions[..., :2], target[..., :2], weight=scale, reduction="sum"
+            x[..., :2], target[..., :2], weight=scale, reduction="sum"
         )
+
+        # 入力及びラベルを \sqrt{scale} 倍すると、勾配が scale 倍される。
+        # darknet の実装に合わせて、1/2 倍する。
         loss_wh = (
             F.mse_loss(
-                predictions[..., 2:4] * torch.sqrt(scale),
+                x[..., 2:4] * torch.sqrt(scale),
                 target[..., 2:4] * torch.sqrt(scale),
                 reduction="sum",
             )
             * 0.5
         )
-        loss_obj = F.binary_cross_entropy(
-            predictions[..., 4], target[..., 4], reduction="sum"
-        )
-        loss_cls = F.binary_cross_entropy(
-            predictions[..., 5:], target[..., 5:], reduction="sum"
-        )
+
+        loss_obj = F.binary_cross_entropy(x[..., 4], target[..., 4], reduction="sum")
+        loss_cls = F.binary_cross_entropy(x[..., 5:], target[..., 5:], reduction="sum")
         loss = loss_xy + loss_wh + loss_obj + loss_cls
 
-        return loss, loss_xy, loss_wh, loss_obj, loss_cls, target
+        return loss, loss_xy, loss_wh, loss_obj, loss_cls
 
     def forward(self, xin, labels=None):
         output = self.conv(xin)
-        return self.calc(xin, output, labels)
+        return self.calc(output, labels)
