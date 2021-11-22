@@ -126,7 +126,7 @@ def main():
     device = utils.get_device(gpu_id=args.gpu_id)
 
     # --weights にチェックポイントが指定された場合は読み込む。
-    state = torch.load(args.weights) if args.weights.suffix == ".pth" else None
+    state = torch.load(args.weights) if args.weights.suffix == ".ckpt" else None
 
     # モデルを作成する。
     model = create_model(config)
@@ -209,24 +209,29 @@ def main():
             print(f"input image size changed to {train_dataset.img_size}.")
 
         if iter_i % args.save_interval == 0 or iter_i == max_iter:
-            suffix = f"{iter_i:06d}" if iter_i < max_iter else "final"
+            model_name = config["model"]["name"]
+            if iter_i == max_iter:
+                state_dict = {"model_state_dict": model.state_dict()}
+                state_save_path = args.save_dir / f"{model_name}_final.pth"
+                history_save_path = args.save_dir / "history_final.csv"
+            else:
+                state_dict = {
+                    "iter": iter_i,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "scheduler_state_dict": scheduler.state_dict(),
+                }
+                state_save_path = args.save_dir / f"{model_name}_{iter_i:06d}.ckpt"
+                history_save_path = args.save_dir / f"history_{iter_i:06d}.csv"
 
             # チェックポイントを保存する。
-            ckpt_save_path = args.save_dir / f"{config['model']['name']}_{suffix}.pth"
-            state_dict = {
-                "iter": iter_i,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "scheduler_state_dict": scheduler.state_dict(),
-            }
-            torch.save(state_dict, ckpt_save_path)
+            torch.save(state_dict, state_save_path)
 
             # 学習経過を保存する。
-            history_save_path = args.save_dir / f"history_{suffix}.csv"
             pd.DataFrame(history).to_csv(history_save_path, index=False)
 
             print(
-                f"Training state saved. checkpoints: {ckpt_save_path}, loss history: {history_save_path}."
+                f"Training state saved. checkpoints: {state_save_path}, loss history: {history_save_path}."
             )
 
 
