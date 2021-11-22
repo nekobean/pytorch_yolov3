@@ -136,20 +136,11 @@ def parse_yolo_weights(model, weights_path):
         initialize = offset >= len(weights)
 
 
-def create_model(config, weights_path=None):
+def create_model(config):
     # モデルを作成する。
     if config["model"]["name"] == "yolov3":
         model = YOLOv3(config["model"])
     else:
         model = YOLOv3Tiny(config["model"])
-
-    # 重みを読み込む。
-    if weights_path.suffix == ".pth":
-        state = torch.load(weights_path)
-        model.load_state_dict(state["model_state_dict"])
-        print(f"state_dict format weights file loaded. {weights_path}")
-    elif weights_path:
-        parse_yolo_weights(model, weights_path)
-        print(f"Darknet format weights file loaded. {weights_path}")
 
     return model

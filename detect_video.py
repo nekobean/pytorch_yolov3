@@ -6,43 +6,37 @@ import numpy as np
 import torch
 from PIL import Image
 from tqdm import tqdm
-
 from yolov3.datasets.video import Video
 from yolov3.models.yolov3 import YOLOv3, YOLOv3Tiny
 from yolov3.utils import utils as utils
 from yolov3.utils import vis_utils as vis_utils
-from yolov3.utils.parse_yolo_weights import parse_yolo_weights
+from yolov3.utils.model import parse_yolo_weights
 
 
 def parse_args():
-    """Parse command line arguments.
-    """
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
+    # fmt: off
     parser.add_argument(
-        "--input",
-        type=Path,
-        default="data",
+        "--input", type=Path, default="data",
         help="image path or directory path which contains images to infer",
     )
     parser.add_argument(
-        "--output",
-        type=Path,
-        default="output",
+        "--output", type=Path, default="output",
         help="directory path to output detection results",
     )
     parser.add_argument(
-        "--weights",
-        type=Path,
-        default="weights/yolov3.weights",
+        "--weights", type=Path, default="weights/yolov3.weights",
         help="path to weights file",
     )
     parser.add_argument(
-        "--config",
-        type=Path,
-        default="config/yolov3_coco.yaml",
+        "--config", type=Path, default="config/yolov3_coco.yaml",
         help="path to config file",
     )
-    parser.add_argument("--gpu_id", type=int, default=0, help="GPU id to use")
+    parser.add_argument(
+        "--gpu_id", type=int, default=0,
+        help="GPU id to use")
+    # fmt: on
     args = parser.parse_args()
 
     return args

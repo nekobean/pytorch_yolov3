@@ -10,25 +10,25 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
 
 - [x]: Support darknet format weights
 - [x]: Sample code for infering image and video
-- [ ]: Sample code for training and validating (WIP)
+- [x]: Sample code for training
 
 ## Usage
 
 ### Download weights
 
-Install the dependent libraries.
+1. Install dependent libraries.
 
-```bash
-pip install -r requirements.txt
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Download the official weights.
+2. Download the official weights.
 
-```bash
-./weights/download_weights.sh
-```
+    ```bash
+    ./weights/download_weights.sh
+    ```
 
-### Infer a single image (YOLOv3)
+### Detect from a single image
 
 ```bash
 python detect_image.py \
@@ -38,7 +38,7 @@ python detect_image.py \
     --config config/yolov3_coco.yaml
 ```
 
-### Infer images in the dicretory.
+### Infer from images in the dicretory.
 
 ```bash
 python detect_image.py \
@@ -48,7 +48,7 @@ python detect_image.py \
     --config config/yolov3_coco.yaml
 ```
 
-### Infer video
+### Infer from a single video
 
 ```bash
 python detect_video.py \
@@ -60,11 +60,11 @@ python detect_video.py \
 
 ### Train Custom Dataset
 
+[YOLOv3 - 自作データセットで学習する方法について - pystyle](https://pystyle.info/pytorch-yolov3-how-to-train-custom-dataset/)
 
+### Evaluate on COCO dataset
 
-### Evaluate COCO
-
-```
+```bash
 python evaluate_coco.py \
     --dataset_dir /data/COCO \
     --anno_path config/instances_val5k.json \
@@ -72,7 +72,7 @@ python evaluate_coco.py \
     --config config/yolov3_coco.yaml
 ```
 
-```
+```txt
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.311
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.558
  Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.313

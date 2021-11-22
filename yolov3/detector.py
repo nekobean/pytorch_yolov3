@@ -4,7 +4,7 @@ import torch
 from yolov3.datasets.imagefolder import ImageFolder, ImageList
 from yolov3.utils import utils as utils
 from yolov3.utils import vis_utils as vis_utils
-from yolov3.utils.model import create_model
+from yolov3.utils.model import create_model, parse_yolo_weights
 
 
 def output_to_dict(output, class_names):
@@ -39,7 +39,14 @@ class Detector:
         self.device = utils.get_device(gpu_id=gpu_id)
 
         # モデルを作成する。
-        model = create_model(self.config, weights_path)
+        model = create_model(self.config)
+        if weights_path.suffix == ".weights":
+            parse_yolo_weights(model, weights_path)
+            print(f"Darknet format weights file loaded. {weights_path}")
+        else:
+            state = torch.load(weights_path)
+            model.load_state_dict(state["model_state_dict"])
+            print(f"Pytorch format weights file loaded. {weights_path}")
         self.model = model.to(self.device).eval()
 
     def detect_from_path(self, path):
