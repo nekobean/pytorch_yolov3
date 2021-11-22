@@ -46,7 +46,7 @@ class Detector:
             print(f"Darknet format weights file loaded. {weights_path}")
         else:
             state = torch.load(weights_path)
-            model.load_state_dict(state["model_state_dict"])
+            model.load_state_dict(state["model"])
             print(f"Checkpoint file {weights_path} loaded.")
         self.model = model.to(self.device).eval()
 

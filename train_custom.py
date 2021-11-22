@@ -131,7 +131,7 @@ def main():
     model = create_model(config)
     if state:
         # --weights に指定されたファイルがチェックポイントの場合、状態を復元する。
-        model.load_state_dict(state["model_state_dict"])
+        model.load_state_dict(state["model"])
         print(f"Checkpoint file {args.weights} loaded.")
     else:
         # --weights に指定されたファイルが Darknet 形式の重みの場合、重みを読み込む。
@@ -141,7 +141,7 @@ def main():
 
     # Optimizer を作成する。
     optimizer = build_optimizer(config, model)
-    iter_state = 1
+    start_iter = 1
 
     # Scheduler を作成する。
     scheduler = build_scheduler(config, optimizer)
@@ -149,11 +149,11 @@ def main():
     if state:
         # --weights に指定されたファイルがチェックポイントの場合、状態を復元する。
         # Optimizer の状態を読み込む。
-        optimizer.load_state_dict(state["optimizer_state_dict"])
+        optimizer.load_state_dict(state["optimizer"])
         # Scheduler の状態を読み込む。
-        scheduler.load_state_dict(state["scheduler_state_dict"])
+        scheduler.load_state_dict(state["scheduler"])
         # 前回のステップの次のステップから再開する
-        iter_state = state["iter"] + 1
+        start_iter = state["iter"] + 1
 
     # Dataset を作成する。
     train_dataset = CustomDataset(
@@ -174,7 +174,7 @@ def main():
     args.save_dir.mkdir(exist_ok=True)
 
     history = []
-    for iter_i in range(iter_state, max_iter + 1):
+    for iter_i in range(start_iter, max_iter + 1):
         optimizer.zero_grad()
         for _ in range(subdivision):
             imgs, targets, _ = next(train_dataloader)
@@ -212,15 +212,15 @@ def main():
         if iter_i % args.save_interval == 0 or iter_i == max_iter:
             model_name = config["model"]["name"]
             if iter_i == max_iter:
-                state_dict = {"model_state_dict": model.state_dict()}
+                state_dict = {"model": model.state_dict()}
                 state_save_path = args.save_dir / f"{model_name}_final.pth"
                 history_save_path = args.save_dir / "history_final.csv"
             else:
                 state_dict = {
                     "iter": iter_i,
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "scheduler_state_dict": scheduler.state_dict(),
+                    "model": model.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                    "scheduler": scheduler.state_dict(),
                 }
                 state_save_path = args.save_dir / f"{model_name}_{iter_i:06d}.ckpt"
                 history_save_path = args.save_dir / f"history_{iter_i:06d}.csv"

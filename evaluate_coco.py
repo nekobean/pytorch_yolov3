@@ -50,7 +50,7 @@ def main():
         print(f"Darknet format weights file loaded. {args.weights}")
     else:
         state = torch.load(args.weights)
-        model.load_state_dict(state["model_state_dict"])
+        model.load_state_dict(state["model"])
         print(f"Checkpoint file {args.weights} loaded.")
     model = model.to(device).eval()
 
