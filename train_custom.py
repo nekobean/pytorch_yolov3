@@ -141,10 +141,12 @@ def main():
 
     # Optimizer を作成する。
     optimizer = build_optimizer(config, model)
-    start_iter = 1
 
     # Scheduler を作成する。
     scheduler = build_scheduler(config, optimizer)
+
+    start_iter = 1
+    history = []
 
     if state:
         # --weights に指定されたファイルがチェックポイントの場合、状態を復元する。
@@ -154,6 +156,8 @@ def main():
         scheduler.load_state_dict(state["scheduler"])
         # 前回のステップの次のステップから再開する
         start_iter = state["iter"] + 1
+        # 学習履歴を読み込む。
+        history = state["history"]
 
     # Dataset を作成する。
     train_dataset = CustomDataset(
@@ -173,7 +177,6 @@ def main():
     # チェックポイントを保存するディレクトリを作成する。
     args.save_dir.mkdir(exist_ok=True)
 
-    history = []
     for iter_i in range(start_iter, max_iter + 1):
         optimizer.zero_grad()
         for _ in range(subdivision):
@@ -213,8 +216,8 @@ def main():
             model_name = config["model"]["name"]
             if iter_i == max_iter:
                 state_dict = {"model": model.state_dict()}
-                state_save_path = args.save_dir / f"{model_name}_final.pth"
-                history_save_path = args.save_dir / "history_final.csv"
+                state_dict_path = args.save_dir / f"{model_name}_final.pth"
+                history_path = args.save_dir / "history_final.csv"
             else:
                 state_dict = {
                     "iter": iter_i,
@@ -222,17 +225,17 @@ def main():
                     "optimizer": optimizer.state_dict(),
                     "scheduler": scheduler.state_dict(),
                 }
-                state_save_path = args.save_dir / f"{model_name}_{iter_i:06d}.ckpt"
-                history_save_path = args.save_dir / f"history_{iter_i:06d}.csv"
+                state_dict_path = args.save_dir / f"{model_name}_{iter_i:06d}.ckpt"
+                history_path = args.save_dir / f"history_{iter_i:06d}.csv"
 
             # チェックポイントを保存する。
-            torch.save(state_dict, state_save_path)
+            torch.save(state_dict, state_dict_path)
 
             # 学習経過を保存する。
-            pd.DataFrame(history).to_csv(history_save_path, index=False)
+            pd.DataFrame(history).to_csv(history_path, index=False)
 
             print(
-                f"Training state saved. checkpoints: {state_save_path}, loss history: {history_save_path}."
+                f"Training state saved. checkpoints: {state_dict_path}, loss history: {history_path}."
             )
 
 
