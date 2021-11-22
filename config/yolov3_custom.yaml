@@ -8,6 +8,7 @@ model:
             [116, 90], [156, 198], [373, 326]]
   anchor_mask: [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
 train:
+  img_size: 608
   lr: 0.001
   burn_in: 1000
   steps: [8000, 9000]
@@ -23,7 +24,7 @@ augmentation:
   random_placing: True
   jitter: 0.3
 test:
-  batch_size: 64
+  batch_size: 32
   conf_threshold: 0.5
   nms_threshold: 0.45
   img_size: 416

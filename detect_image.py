@@ -40,11 +40,11 @@ def main():
     detector = Detector(args.config, args.weights, args.gpu_id)
 
     # 検出する。
-    detections, img_paths = detector.detect(args.input)
+    detections, img_paths = detector.detect_from_path(args.input)
 
+    # 検出結果を出力する。
     args.output.mkdir(exist_ok=True)
     for detection, img_path in zip(detections, img_paths):
-        # 検出結果を出力する。
         print(img_path)
         for box in detection:
             print(

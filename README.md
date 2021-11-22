@@ -12,9 +12,7 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
 - [x]: Sample code for infering image and video
 - [x]: Sample code for training
 
-## Usage
-
-### Download weights
+### Setup
 
 1. Install dependent libraries.
 
@@ -28,6 +26,8 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
     ./weights/download_weights.sh
     ```
 
+## Usage (YOLOv3)
+
 ### Detect from a single image
 
 ```bash
@@ -38,7 +38,7 @@ python detect_image.py \
     --config config/yolov3_coco.yaml
 ```
 
-### Infer from images in the dicretory.
+### Detect from images in the dicretory.
 
 ```bash
 python detect_image.py \
@@ -48,7 +48,7 @@ python detect_image.py \
     --config config/yolov3_coco.yaml
 ```
 
-### Infer from a single video
+### Detect from a single video
 
 ```bash
 python detect_video.py \
@@ -58,9 +58,102 @@ python detect_video.py \
     --config config/yolov3_coco.yaml
 ```
 
-### Train Custom Dataset
+### Train custom dataset
 
 [YOLOv3 - 自作データセットで学習する方法について - pystyle](https://pystyle.info/pytorch-yolov3-how-to-train-custom-dataset/)
+
+```bash
+python train_custom.py \
+    --dataset_dir custom_dataset \
+    --weights weights/darknet53.conv.74 \
+    --config config/yolov3_custom.yaml
+```
+
+## Usage (YOLOv3-tiny)
+
+### Detect from a single image
+
+```bash
+python detect_image.py \
+    --input data/dog.png \
+    --output output \
+    --weights weights/yolov3-tiny.weights \
+    --config config/yolov3tiny_coco.yaml
+```
+
+### Detect from images in the dicretory.
+
+```bash
+python detect_image.py \
+    --input data \
+    --output output \
+    --weights weights/yolov3-tiny.weights \
+    --config config/yolov3tiny_coco.yaml
+```
+
+### Detect from a single video
+
+```bash
+python detect_video.py \
+    --input data/sample.avi \
+    --output output \
+    --weights weights/yolov3-tiny.weights \
+    --config config/yolov3tiny_coco.yaml
+```
+
+### Train custom dataset
+
+Download [YOLOv3-tiny pretrained weights](https://drive.google.com/file/d/1sEjehR9psSD9lWHvXABaN6jbAAkbwbBX/view?usp=sharing).
+
+[YOLOv3 - 自作データセットで学習する方法について - pystyle](https://pystyle.info/pytorch-yolov3-how-to-train-custom-dataset/)
+
+```bash
+python train_custom.py \
+    --dataset_dir custom_dataset \
+    --weights weights/yolov3-tiny.conv.15 \
+    --config config/yolov3tiny_custom.yaml
+```
+
+## MSCOC benchmark
+
+### Setup
+
+1. Download MSCOC 2017 dataset and unzip them.
+
+    ```bash
+    wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+    wget http://images.cocodataset.org/zips/train2017.zip
+    wget http://images.cocodataset.org/zips/val2017.zip
+    unzip train2017.zip
+    unzip val2017.zip
+    unzip annotations_trainval2017.zip
+    ```
+
+    After unzipping, the directory structure should look like
+
+    ```
+    <dataset_dir>
+    |-- annotations
+    |-- train2017
+    `-- val2017
+    ```
+
+2. Install pycocotools (Cython is required to build pycocotools)
+
+    ```bash
+    pip install Cython
+    pip install pycocotools
+    ```
+
+### Train MSCOCO dataset
+
+```bash
+python train_coco.py \
+    --dataset_dir /data/COCO \
+    --anno_path /data/COCO/annotations/instances_val5k.json \
+    --weights_path weights/yolov3.weights \
+    --gpu_id 0  # 0.3256
+```
 
 ### Evaluate on COCO dataset
 

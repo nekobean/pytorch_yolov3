@@ -132,6 +132,7 @@ class YOLOLayer(nn.Module):
         y_offset, x_offset = torch.meshgrid(
             torch.arange(nG, dtype=x.dtype, device=x.device),
             torch.arange(nG, dtype=x.dtype, device=x.device),
+            indexing="ij",
         )
 
         pred_boxes = torch.stack(

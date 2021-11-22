@@ -111,6 +111,7 @@ def main():
 
     # 設定ファイルを読み込む。
     config = utils.load_config(args.config)
+    img_size = config["train"]["img_size"]
     batch_size = config["train"]["batch_size"]
     subdivision = config["train"]["subdivision"]
     n_samples_per_iter = batch_size * subdivision
@@ -161,7 +162,7 @@ def main():
         args.dataset_dir,
         class_names,
         train=True,
-        img_size=get_train_size(),
+        img_size=img_size,
         bbox_format="pascal_voc",
         augmentation=config["augmentation"],
     )

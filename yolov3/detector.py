@@ -2,6 +2,7 @@ from pathlib import Path
 
 import torch
 from yolov3.datasets.imagefolder import ImageFolder, ImageList
+from yolov3.datasets.video import Video
 from yolov3.utils import utils as utils
 from yolov3.utils import vis_utils as vis_utils
 from yolov3.utils.model import create_model, parse_yolo_weights
@@ -35,7 +36,7 @@ class Detector:
             config_path.parent / self.config["model"]["class_names"]
         )
 
-        # デバイスを作成する。
+        # Device を作成する。
         self.device = utils.get_device(gpu_id=gpu_id)
 
         # モデルを作成する。
@@ -46,7 +47,7 @@ class Detector:
         else:
             state = torch.load(weights_path)
             model.load_state_dict(state["model_state_dict"])
-            print(f"Pytorch format weights file loaded. {weights_path}")
+            print(f"Checkpoint file {weights_path} loaded.")
         self.model = model.to(self.device).eval()
 
     def detect_from_path(self, path):
@@ -106,11 +107,33 @@ class Detector:
 
         return detections
 
-    def detect(self, input):
-        if isinstance(input, (str, Path)):
-            return self.detect_from_path(input)
-        else:
-            return self.detect_from_imgs(input)
+    def detect_from_video(self, path):
+        img_size = self.config["test"]["img_size"]
+        conf_threshold = self.config["test"]["conf_threshold"]
+        nms_threshold = self.config["test"]["nms_threshold"]
+        batch_size = self.config["test"]["batch_size"]
+
+        # Dataset を作成する。
+        dataset = Video(path, img_size)
+
+        # DataLoader を作成する。
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
+
+        # 推論する。
+        detections = []
+        for inputs, pad_infos in dataloader:
+            inputs = inputs.to(self.device)
+            pad_infos = [x.to(self.device) for x in pad_infos]
+
+            with torch.no_grad():
+                outputs = self.model(inputs)
+                outputs = utils.postprocess(
+                    outputs, conf_threshold, nms_threshold, pad_infos
+                )
+
+                detections += [output_to_dict(x, self.class_names) for x in outputs]
+
+        return detections
 
     def draw_boxes(self, img, detection):
         vis_utils.draw_boxes(img, detection, n_classes=len(self.class_names))

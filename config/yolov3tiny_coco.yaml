@@ -7,15 +7,15 @@ model:
             [81,82], [135,169], [344,319]]
   anchor_mask: [[3, 4, 5], [0, 1, 2]]
 train:
+  img_size: 416
   lr: 0.001
   burn_in: 1000
   steps: [400000, 450000]
   momentum: 0.9
   decay: 0.0005
-  max_iter: 20000
+  max_iter: 500200
   batch_size: 8
   subdivision: 16
-  img_size: 608
 augmentation:
   random_size: True
   lr_flip: True
@@ -23,7 +23,7 @@ augmentation:
   random_placing: True
   jitter: 0.3
 test:
-  batch_size: 64
+  batch_size: 32
   conf_threshold: 0.5
   nms_threshold: 0.45
   img_size: 416

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 import torch
@@ -10,6 +12,7 @@ class ImageFolder(torch.utils.data.Dataset):
 
     def __init__(self, path, img_size):
         super().__init__()
+        path = Path(path)
         if path.is_dir():
             # ディレクトリの場合
             self.img_paths = self.get_img_paths(path)

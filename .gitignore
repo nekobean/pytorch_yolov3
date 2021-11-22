@@ -129,12 +129,15 @@ dmypy.json
 .pyre/
 
 .vscode/
+
+# ignore data directory and files.
 output/*.avi
 custom_dataset/
+train_output/
 test/
+script_usage.ipynb
+
+# ignore weights file
 *.weights
 darknet53.conv.74
-train_output/
-output2/
-script_usage.ipynb
-data/goldfish/
+yolov3-tiny.conv.15

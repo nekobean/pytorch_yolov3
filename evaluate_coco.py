@@ -2,16 +2,13 @@ import argparse
 from pathlib import Path
 
 import torch
-
-from yolov3.models.yolov3 import YOLOv3, YOLOv3Tiny
 from yolov3.utils import utils as utils
 from yolov3.utils.coco_evaluator import COCOEvaluator
-from yolov3.utils.parse_yolo_weights import parse_yolo_weights
+from yolov3.utils.model import create_model, parse_yolo_weights
 
 
 def parse_args():
-    """Parse command line arguments.
-    """
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--dataset_dir", type=Path, required=True, help="directory path to coco dataset"
@@ -47,19 +44,14 @@ def main():
     device = utils.get_device(gpu_id=args.gpu_id)
 
     # モデルを作成する。
-    if config["model"]["name"] == "yolov3":
-        model = YOLOv3(config["model"])
-    else:
-        model = YOLOv3Tiny(config["model"])
-
+    model = create_model(config)
     if args.weights.suffix == ".weights":
         parse_yolo_weights(model, args.weights)
         print(f"Darknet format weights file loaded. {args.weights}")
     else:
         state = torch.load(args.weights)
         model.load_state_dict(state["model_state_dict"])
-        print(f"state_dict format weights file loaded. {args.weights}")
-
+        print(f"Checkpoint file {args.weights} loaded.")
     model = model.to(device).eval()
 
     evaluator = COCOEvaluator(
