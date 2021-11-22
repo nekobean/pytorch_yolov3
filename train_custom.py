@@ -131,8 +131,6 @@ def main():
     model = create_model(config)
     if state:
         # --weights に指定されたファイルがチェックポイントの場合、状態を復元する。
-        state = torch.load(args.weights)
-        # モデルの重みを読み込む。
         model.load_state_dict(state["model_state_dict"])
         print(f"Checkpoint file {args.weights} loaded.")
     else:

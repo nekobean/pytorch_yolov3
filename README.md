@@ -20,6 +20,12 @@ simple Pytorch implementation of YOLOv3 / YOLOv3-tiny.
     pip install -r requirements.txt
     ```
 
+    If you have already installed older version of Pytorch, update it.
+
+    ```bash
+    pip install -U torch torchvision torchaudio
+    ```
+
 2. Download the official weights.
 
     ```bash
