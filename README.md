@@ -150,9 +150,9 @@ python train_custom.py \
 ```bash
 python train_coco.py \
     --dataset_dir /data/COCO \
-    --anno_path /data/COCO/annotations/instances_val5k.json \
-    --weights_path weights/yolov3.weights \
-    --gpu_id 0  # 0.3256
+    --anno_path /data/COCO/annotations/instances_train2017.json \
+    --weights weights/darknet53.conv.74 \
+    --config config/yolov3_coco.yaml
 ```
 
 ### Evaluate on COCO dataset
