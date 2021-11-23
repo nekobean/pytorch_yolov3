@@ -224,6 +224,7 @@ def main():
                     "model": model.state_dict(),
                     "optimizer": optimizer.state_dict(),
                     "scheduler": scheduler.state_dict(),
+                    "history": history,
                 }
                 state_dict_path = args.save_dir / f"{model_name}_{iter_i:06d}.ckpt"
                 history_path = args.save_dir / f"history_{iter_i:06d}.csv"
