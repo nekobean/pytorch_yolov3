@@ -1,13 +1,16 @@
+from pathlib import Path
+
 import cv2
+import matplotlib
 import numpy as np
 import torch
 import yaml
-from torchvision import ops as ops
+from matplotlib import font_manager
+from torchvision import ops
 
 
 def load_config(path):
-    """設定ファイルを読み込む。
-    """
+    """設定ファイルを読み込む。"""
     with open(path) as f:
         config = yaml.safe_load(f)
 
@@ -15,8 +18,7 @@ def load_config(path):
 
 
 def load_classes(path):
-    """クラス一覧を読み込む。
-    """
+    """クラス一覧を読み込む。"""
     with open(path) as f:
         class_names = [x.strip() for x in f.read().splitlines()]
 
@@ -24,8 +26,7 @@ def load_classes(path):
 
 
 def get_device(gpu_id=-1):
-    """Device を取得する。
-    """
+    """Device を取得する。"""
     if gpu_id >= 0 and torch.cuda.is_available():
         return torch.device("cuda", gpu_id)
     else:
@@ -162,3 +163,9 @@ def postprocess(outputs, conf_threshold, iou_threshold, pad_infos):
         decoded.append(output)
 
     return decoded
+
+
+def japanize_matplotlib():
+    font_path = str(Path(__file__).parent / "font/ipag.ttc")
+    font_manager.fontManager.addfont(font_path)
+    matplotlib.rc("font", family="IPAGothic")

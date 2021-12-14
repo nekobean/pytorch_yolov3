@@ -59,7 +59,7 @@ class CustomDataset(torch.utils.data.Dataset):
         return len(self.samples)
 
     def init_dataset(self, dataset_dir, train, bbox_format):
-        list_path = dataset_dir / "train.txt" if train else "val.txt"
+        list_path = dataset_dir / ("train.txt" if train else "test.txt")
         img_names = open(list_path).read().splitlines()
 
         self.samples = []

@@ -75,6 +75,15 @@ python train_custom.py \
     --config config/yolov3_custom.yaml
 ```
 
+### Evaluate custom dataset
+
+```bash
+python evaluate_custom.py \
+    --dataset_dir custom_dataset \
+    --weights train_output/yolov3_final.pth \
+    --config config/yolov3_custom.yaml
+```
+
 ## Usage (YOLOv3-tiny)
 
 ### Detect from a single image

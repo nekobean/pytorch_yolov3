@@ -134,6 +134,7 @@ dmypy.json
 output/*.avi
 custom_dataset/
 train_output/
+metrics_output/
 test/
 script_usage.ipynb
 
