@@ -103,12 +103,16 @@ def output_metrics(groundtruths, predictions, class_names, iou, output_dir):
 
     # 結果を出力する。
     output_dir.mkdir(exist_ok=True)
+    det_bboxes = []
     for ret in results:
         save_path = output_dir / f"{ret['class']}.png"
         pascalvoc_metrics.plot_pr_curve(ret, save_path)
 
-        save_path = output_dir / f"{ret['class']}.csv"
-        ret["det_bboxes"].to_csv(save_path, index=False)
+        det_bboxes.append(ret["det_bboxes"])
+
+    save_path = output_dir / f"{ret['class']}.csv"
+    det_bboxes = pd.concat(det_bboxes).sort_values("No")
+    det_bboxes.to_csv(save_path, index=False)
 
     save_path = output_dir / f"metrics.csv"
     metrics.to_csv(save_path, index=False)
