@@ -108,10 +108,10 @@ def output_metrics(groundtruths, predictions, class_names, iou, output_dir):
         pascalvoc_metrics.plot_pr_curve(ret, save_path)
 
         save_path = output_dir / f"{ret['class']}.csv"
-        ret["det_bboxes"].to_csv(save_path)
+        ret["det_bboxes"].to_csv(save_path, index=False)
 
     save_path = output_dir / f"metrics.csv"
-    metrics.to_csv(save_path)
+    metrics.to_csv(save_path, index=False)
 
 
 def main():
