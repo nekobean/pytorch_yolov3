@@ -110,7 +110,7 @@ def output_metrics(groundtruths, predictions, class_names, iou, output_dir):
 
         det_bboxes.append(ret["det_bboxes"])
 
-    save_path = output_dir / f"{ret['class']}.csv"
+    save_path = output_dir / "detections.csv"
     det_bboxes = pd.concat(det_bboxes).sort_values("No")
     det_bboxes.to_csv(save_path, index=False)
 
