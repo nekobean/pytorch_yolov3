@@ -4,56 +4,56 @@ import pandas as pd
 
 
 def check_det_bboxes(gt_bboxes, det_bboxes, iou_threshold):
-    """Check if the detected bounding boxes are correct.
+    """予測した矩形が正解かどうかを判定する。
 
     Args:
-        gt_bboxes (DataFrame): ground truth bounding boxes.
-        det_bboxes (DataFrame): detected bounding boxes.
-        iou_threshold (float): iou threshold
+        gt_bboxes (DataFrame): 正解の矩形一覧。
+        det_bboxes (DataFrame): 予測した矩形一覧
+        iou_threshold (float): IOU の閾値
 
     Returns:
-        tuple: (ground truth bounding boxes, detected bounding boxes)
+        tuple: (正解の矩形一覧, 予測した矩形一覧)
     """
     gt_bboxes = gt_bboxes.copy()
     det_bboxes = det_bboxes.copy()
 
-    # ground truth の矩形が検出した矩形と紐付いているかどうかを記録する列を追加する。
+    # 正解の矩形が予測した矩形と紐付いているかどうかを記録する列を追加する。
     gt_bboxes["Match"] = False
-    # 検出した矩形が正解したかどうかを記録する列を追加する。
+    # 予測した矩形が正解したかどうかを記録する列を追加する。
     det_bboxes["Correct"] = False
     # スコアが高い順にソートする。
     det_bboxes.sort_values("Score", ascending=False, inplace=True)
 
     for det_bbox in det_bboxes.itertuples():
-        # 検出した矩形と同じ画像の正解の矩形を取得する。
+        # 予測した矩形と同じ画像の正解の矩形一覧を取得する。
         corr_gt_bboxes = gt_bboxes[gt_bboxes["No"] == det_bbox.No]
 
         if corr_gt_bboxes.empty:
-            continue  # ground truth が存在しない場合
+            continue  # この画像に正解の矩形が1つも存在しない場合
 
-        # IOU を計算し、IOU が最大の ground truth の矩形を選択する。
+        # IOU を計算し、IOU が最大となる正解の矩形を選択する。
         a = np.array([det_bbox.Xmin, det_bbox.Ymin, det_bbox.Xmax, det_bbox.Ymax])
         b = corr_gt_bboxes[["Xmin", "Ymin", "Xmax", "Ymax"]].values
         iou = calc_iou(a, b)
 
-        # 検出した矩形 det_idx と正解の矩形 gt_idx が対応づけられた
+        # 予測した矩形に紐付いた正解の矩形のインデックス
         gt_idx = corr_gt_bboxes.index[iou.argmax()]
 
         if iou.max() >= iou_threshold and not gt_bboxes.loc[gt_idx, "Match"]:
-            # IOU が閾値以上、かつ選択した矩形がまだ他の検出した矩形と紐付いていない場合、
-            # 正解と判定する。
+            # IOU が閾値以上、かつ選択した矩形がまだ他の予測した矩形と紐付いていない場合、正解と判定する。
             gt_bboxes.loc[gt_idx, "Match"] = True
             det_bboxes.loc[det_bbox.Index, "Correct"] = True
+            det_bboxes.loc[det_bbox.Index, "IOU"] = iou.max()
 
     return gt_bboxes, det_bboxes
 
 
 def calc_pr_curve(gt_bboxes, det_bboxes):
-    """Calculate precision and recall for each threshold.
+    """閾値ごとの精度及び再現率を計算する。
 
     Args:
-        gt_bboxes (DataFrame): ground truth bounding boxes.
-        det_bboxes (DataFrame): detected bounding boxes.
+        gt_bboxes (DataFrame): 正解の矩形一覧
+        det_bboxes (DataFrame): 予測した矩形一覧
 
     Returns:
         tuple: (precision, recall)
@@ -71,14 +71,14 @@ def calc_pr_curve(gt_bboxes, det_bboxes):
 
 
 def calc_average_precision(recall, precision):
-    """Calculate average precision (AP).
+    """Average Precision (AP) を計算する。
 
     Args:
-        recall (array-like): Precision for each threshold.
-        precision (array-like): Recall for each threshold.
+        recall (array-like): 閾値ごとの精度一覧
+        precision (array-like): 閾値ごとの再現率一覧
 
     Returns:
-        tuple: (AP, modified precision, modified recall)
+        tuple: (修正後の閾値ごとの精度, 修正後の閾値ごとの再現率, AP)
     """
     modified_recall = np.concatenate([[0], recall, [1]])
     modified_precision = np.concatenate([[0], precision, [0]])
@@ -96,11 +96,11 @@ def calc_iou(a_bbox, b_bboxes):
     """Calculate intersection over union (IOU).
 
     Args:
-        a (array-like): 1-D Array with shape (4,) representing bounding box.
-        b (array-like): 2-D Array with shape (NumBoxes, 4) representing bounding boxes.
+        a (array-like): 矩形の座標を表す形状が (4,) の1次元配列。
+        b (array-like): 矩形の座標を表す形状が (NumBoxes, 4) の2次元配列
 
     Returns:
-        [type]: [description]
+        (array-like): 矩形 a と b の各矩形の IOU の一覧
     """
     # 短形 a_bbox と短形 b_bboxes の共通部分を計算する。
     xmin = np.maximum(a_bbox[0], b_bboxes[:, 0])
@@ -121,10 +121,10 @@ def calc_iou(a_bbox, b_bboxes):
 
 
 def calc_area(bbox):
-    """Calculate area of boudning box.
+    """矩形の面積を計算する。
 
     Args:
-        bboxes (array-like): 1-D Array with shape (4,) representing bounding box.
+        bboxes (array-like): 矩形の座標を表す形状が (4,) の1次元配列。
 
     Returns:
         float: Areea
@@ -138,18 +138,18 @@ def calc_area(bbox):
 
 
 def calc_metrics(gt_bboxes, det_bboxes, class_, iou_threshold):
-    """Calculate result for specific class.
+    """指定したクラスの指標を計算する。
 
     Args:
-        gt_bboxes (DataFrame): DataFrame representing ground truth bounding boxes.
-        det_bboxes (DataFrame): DataFrame representing detected bounding boxes.
-        class_ (str): Class to calculate result.
-        iou_threshold (float): IOU threshold.
+        gt_bboxes (DataFrame): columns=(No, Label, Xmin, Ymin, Xmax, Ymax)。正解の矩形一覧
+        det_bboxes (DataFrame): columns=(No, Score, Label, Xmin, Ymin, Xmax, Ymax)。予測した矩形一覧
+        class_ (str): 計算対象のクラス
+        iou_threshold (float): IOU の閾値
 
     Returns:
-        dict: Result for specific class.
+        dict: 指定したクラスの評価指標
     """
-    # 対象クラスの正解及び検出した矩形を抽出する。
+    # 対象クラスの正解及び予測した矩形を抽出する。
     taget_gt_bboxes = gt_bboxes[gt_bboxes["Label"] == class_]
     taget_det_bboxes = det_bboxes[det_bboxes["Label"] == class_]
 
@@ -166,6 +166,7 @@ def calc_metrics(gt_bboxes, det_bboxes, class_, iou_threshold):
     )
 
     result = {
+        "det_bboxes": taget_det_bboxes,
         "class": class_,
         "precision": precision,
         "recall": recall,
@@ -177,12 +178,12 @@ def calc_metrics(gt_bboxes, det_bboxes, class_, iou_threshold):
     return result
 
 
-def plot_pr_curve(result, save_path=None):
+def plot_pr_curve(result, save_path):
     """Plot precision recall (PR) cureve.
 
     Args:
-        result (dict): Result for specific class.
-        save_path (Path, optional): Path to save created figure. Defaults to None.
+        result (dict): 計算対象のクラス
+        save_path (Path, optional): 図を保存するディレクトリ
     """
     fig, ax = plt.subplots()
 
@@ -210,13 +211,13 @@ def plot_pr_curve(result, save_path=None):
 
 
 def aggregate(results):
-    """Aggregate each class result and create DataFrame.
+    """クラスごとの評価指標を集計する。
 
     Args:
-        results (list of dicts): list of dicts representing all class results.
+        results (list of dicts): 各クラスの評価指標の一覧。
 
     Returns:
-        DataFrame: DataFrame representing all class results.
+        DataFrame: クラスごとの評価指標
     """
     metrics = []
     for result in results:
